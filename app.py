@@ -34,7 +34,11 @@ def create_or_join():
     if not username or not amount:
         return "Nome e valor da aposta são obrigatórios", 400
 
-    amount = int(amount)
+    try:
+        amount = int(amount)
+    except:
+        return "Aposta inválida", 400
+
     if amount <= 0:
         return "Aposta deve ser positiva", 400
 
@@ -127,6 +131,10 @@ def play_card(room_id):
             room["players"][winner]["money"] += bet
             room["players"][loser]["money"] -= bet
 
+            # Copiar cartas antes de resetar
+            winner_card = room["players"][winner]["card"]
+            loser_card = room["players"][loser]["card"]
+
             # Reset cartas
             p1["card"] = None
             p2["card"] = None
@@ -136,8 +144,8 @@ def play_card(room_id):
                 "winner_name": room["players"][winner]["username"],
                 "loser": loser,
                 "loser_name": room["players"][loser]["username"],
-                "winner_card": room["players"][winner]["card"],
-                "loser_card": room["players"][loser]["card"],
+                "winner_card": winner_card,
+                "loser_card": loser_card,
                 "bet": bet,
             }
 
@@ -159,7 +167,6 @@ def play_card(room_id):
             return jsonify({"result": room["round_result"], "state": room})
 
     return jsonify({"message": "Carta registrada. Esperando outro jogador", "state": room})
-
 
 if __name__ == "__main__":
     app.run(debug=True)
