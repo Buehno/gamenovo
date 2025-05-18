@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Truco Online - Lobby</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-900 text-white flex items-center justify-center min-h-screen">
+  <div class="bg-green-700 p-8 rounded-xl shadow-xl w-full max-w-md">
+    <h1 class="text-3xl font-bold mb-6 text-center">🎴 Truco Online 💸</h1>
+    <form action="/create_or_join" method="POST" class="space-y-4">
+      <input
+        type="text"
+        name="username"
+        placeholder="Seu nome"
+        class="w-full px-4 py-2 rounded bg-white text-black"
+        required
+      />
+      <input
+        type="number"
+        name="amount"
+        placeholder="Valor da aposta (R$)"
+        class="w-full px-4 py-2 rounded bg-white text-black"
+        required
+        min="1"
+      />
+      <input
+        type="text"
+        name="room_id"
+        placeholder="ID da sala (opcional)"
+        class="w-full px-4 py-2 rounded bg-white text-black"
+      />
+      <button
+        type="submit"
+        class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded"
+      >
+        Entrar no Jogo
+      </button>
+    </form>
+  </div>
+</body>
+</html>

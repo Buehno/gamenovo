@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sala do Truco</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-800 text-white min-h-screen flex flex-col items-center justify-center">
+  <div class="w-full max-w-4xl p-6">
+    <h1 class="text-3xl font-bold text-center mb-6">🃏 Mesa de Truco</h1>
+
+    <div class="flex justify-between mb-4">
+      <!-- Jogador 1 -->
+      <div id="player1" class="bg-green-600 p-4 rounded-lg w-1/2 mr-2">
+        <h2 class="text-xl font-semibold" id="player1-name">Jogador 1</h2>
+        <p>Saldo: R$<span id="money1">--</span></p>
+        <div class="mt-2">
+          <label for="card1" class="block">Sua Carta:</label>
+          <select id="card1" class="text-black px-2 py-1 rounded">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="J">J</option>
+            <option value="Q">Q</option>
+            <option value="K">K</option>
+            <option value="A">A</option>
+          </select>
+        </div>
+        <button id="btnPlay1" class="mt-3 bg-yellow-400 text-black font-bold px-4 py-2 rounded">Jogar Carta</button>
+      </div>
+
+      <!-- Jogador 2 -->
+      <div id="player2" class="bg-green-600 p-4 rounded-lg w-1/2 ml-2">
+        <h2 class="text-xl font-semibold" id="player2-name">Jogador 2</h2>
+        <p>Saldo: R$<span id="money2">--</span></p>
+        <div class="mt-2">
+          <label for="card2" class="block">Sua Carta:</label>
+          <select id="card2" class="text-black px-2 py-1 rounded">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="J">J</option>
+            <option value="Q">Q</option>
+            <option value="K">K</option>
+            <option value="A">A</option>
+          </select>
+        </div>
+        <button id="btnPlay2" class="mt-3 bg-yellow-400 text-black font-bold px-4 py-2 rounded">Jogar Carta</button>
+      </div>
+    </div>
+
+    <div class="bg-white text-black p-4 rounded shadow text-center">
+      <p class="font-bold">Resultado:</p>
+      <p id="result">Aguardando jogadas...</p>
+    </div>
+  </div>
+
+  <script>
+    // Pega o room_id da URL
+    const urlParts = window.location.pathname.split('/');
+    const roomId = urlParts[urlParts.length - 1];
+
+    // Jogadores locais simulados (defina qual player é você)
+    // Aqui vou assumir que player1 é você na aba 1, e player2 na outra.
+    // Em produção, isso deve vir do backend/login.
+    // Para demo, você pode mudar manualmente aqui:
+    const localPlayerNum = 1; // mude para 2 na outra aba para testar multiplayer
+
+    // Atualiza o estado da sala no front
+    async function updateState() {
+      const res = await fetch(`/state/${roomId}`);
+      const data = await res.json();
+      if(data.error) {
+        alert(data.error);
+        return;
+      }
+
+      const players = data.players;
+      if(players[1]) {
+        document.getElementById('player1-name').textContent = players[1].username;
+        document.getElementById('money1').textContent = players[1].money;
+      }
+      if(players[2]) {
+        document.getElementById('player2-name').textContent = players[2].username;
+        document.getElementById('money2').textContent = players[2].money;
+      }
+
+      if(data.round_result) {
+        if(data.round_result.winner) {
+          document.getElementById('result').textContent = 
+            `Jogador ${data.round_result.winner} (${data.round_result.winner_name}) venceu a rodada! Apostou R$${data.bet}`;
+        } else if(data.round_result.message) {
+          document.getElementById('result').textContent = data.round_result.message;
+        }
+        if(data.round_result.game_over && data.round_result.loser_bankrupt) {
+          alert(`O jogador ${data.round_result.loser_name} perdeu todo o dinheiro! Você venceu! 🎉`);
+        }
+      } else {
+        document.getElementById('result').textContent = "Aguardando jogadas...";
+      }
+    }
+
+    // Envia a carta jogada para o backend
+    async function playCard(playerNum, card) {
+      const res = await fetch(`/play_card/${roomId}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({player_num: playerNum, card: card})
+      });
+      const data = await res.json();
+
+      if(data.error) {
+        alert(data.error);
+        return;
+      }
+      updateState();
+    }
+
+    // Configura botões para jogar carta (só habilita para o jogador local)
+    function setup() {
+      if(localPlayerNum === 1) {
+        document.getElementById('btnPlay1').disabled = false;
+        document.getElementById('btnPlay1').onclick = () => {
+          const card = document.getElementById('card1').value;
+          playCard(1, card);
+        };
+        document.getElementById('btnPlay2').disabled = true;
+      } else if(localPlayerNum === 2) {
+        document.getElementById('btnPlay2').disabled = false;
+        document.getElementById('btnPlay2').onclick = () => {
+          const card = document.getElementById('card2').value;
+          playCard(2, card);
+        };
+        document.getElementById('btnPlay1').disabled = true;
+      }
+    }
+
+    setup();
+    updateState();
+    // Atualiza estado a cada 3 segundos para simular multiplayer simples
+    setInterval(updateState, 3000);
+  </script>
+</body>
+</html>
